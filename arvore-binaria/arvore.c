@@ -20,17 +20,17 @@ void inserirDireita(s_no *raiz, s_no *no);
 void imprimirArv(s_arvore *raiz);
 int buscar(s_no *raiz, int valor);
 int altura(s_no *raiz);
-s_no *remover(s_no *raiz, int valor);
 void imprimirPreOrdem(s_no *raiz);
 void imprimirInOrdem(s_no *raiz);
 void imprimirPosOrdem(s_no *raiz);
+s_no *remover(s_no *raiz, int valor);
 
 
 int main() {
   s_arvore *arv = criarArv();
-  s_no *removido = NULL;
+  int removido;
   
-  int busca;
+  int busca, valor, altura_arvore;
 
   inserir(arv, criarNo(7));
   inserir(arv, criarNo(13));
@@ -40,44 +40,44 @@ int main() {
   inserir(arv, criarNo(18));
   inserir(arv, criarNo(5));
   inserir(arv, criarNo(11));
-
+  
+  
   printf("\nIn-ordem:   ");
   imprimirInOrdem(arv->raiz);
 
-  /*
-  printf("Pre-ordem:    ");
+  printf("\nPre-ordem:    ");
   imprimirPreOrdem(arv->raiz);
+
   printf("\nPos-ordem:   ");
   imprimirPosOrdem(arv->raiz);
-   imprimirArv(arv);
-  printf("Informe o valor a ser procurado na arvore: ");
+
+  altura_arvore = altura(arv->raiz);
+  printf("\nAltura: %d\n", altura_arvore);
+
+  printf("\nInforme o valor a ser procurado na arvore: ");
   scanf("%d", &valor); 
-
-
 
   busca = buscar(arv->raiz, valor);
   if(busca) printf("Valor encontrado!\n");
-  else printf("Valor nao encontrado!\n");*/
+  else printf("Valor nao encontrado!\n");
 
-  removido = remover(arv->raiz, 18);
-  if(removido == NULL) {
-    printf("\nNao foi possivel Remover!!!\n");
-  }
+  
 
-  printf("\nIn-ordem:   ");
+  
+
+  printf("\nIn-ordem: ");
   imprimirInOrdem(arv->raiz);
 
-  removido = remover(arv->raiz, 18);
-  if(removido == NULL) {
-    printf("\nNao foi possivel Remover!!!\n");
-  }
-
-  printf("\nIn-ordem:   ");
+  remover(arv->raiz, 13);
+  
+  printf("\nIn-ordem: ");
   imprimirInOrdem(arv->raiz);
 
 
-  busca = altura(arv->raiz);
-  printf("\nAltura: %d\n", busca);
+
+
+  
+
 
     
 
@@ -186,73 +186,98 @@ int altura(s_no *raiz) {
   }
 }
 
-s_no *remover(s_no *raiz, int valor) {
-  if(raiz == NULL) {
-    return NULL;
-  } else {
-    if(valor < raiz->valor) {
-      raiz->esq = remover(raiz->esq, valor);
-    } else {
-      if(valor > raiz->valor) {
-        raiz->dir = remover(raiz->dir, valor);
-      } else {
-        if(raiz->esq == NULL) {
-          s_no *aux = raiz->dir;
-          free(raiz);
-          return aux;
-        } else {
-          if(raiz->dir == NULL) {
-            s_no *aux = raiz->esq;
-            free(raiz);
-            return aux;
-          } else {
-            s_no *aux = raiz->dir;
-            raiz->valor = aux->valor;
-            raiz->dir = remover(raiz->dir, aux->valor);
-          }
-        }
-      }
-    }
-  }
-  return raiz;
-}
-
 void imprimirPreOrdem(s_no *raiz) {
-  printf("%d ", raiz->valor);
-  if(raiz->esq != NULL) {
+  if(raiz != NULL) {
+    printf("%d ", raiz->valor);
     imprimirPreOrdem(raiz->esq);
-  }
-
-  if(raiz->dir != NULL) {
     imprimirPreOrdem(raiz->dir);
   }
 }
 
 void imprimirInOrdem(s_no *raiz) {
-  if(raiz->esq != NULL) {
+  if(raiz!= NULL) {
     imprimirInOrdem(raiz->esq);
-  }
-
-  printf("%d ", raiz->valor);
-
-  if(raiz->dir != NULL) {
+    printf("%d ", raiz->valor);
     imprimirInOrdem(raiz->dir);
   }
 }
 
 void imprimirPosOrdem(s_no *raiz) {
-  if(raiz->esq != NULL) {
+  if(raiz != NULL) {
     imprimirPosOrdem(raiz->esq);
-  }
-
-  if(raiz->dir != NULL) {
     imprimirPosOrdem(raiz->dir);
+    printf("%d ", raiz->valor);
   }
-
-  printf("%d ", raiz->valor);
-
 }
 
+s_no *remover(s_no *raiz, int valor) {
+  if(raiz == NULL) {
+    printf("Valor nao encontrado!\n");
+    return NULL;
+  } else {
+    // procurar o nó a remover
+    if(raiz->valor == valor) {
+
+      // Remover nó folha
+      if(raiz->esq == NULL && raiz->dir == NULL) {
+        s_no *aux = raiz;
+        raiz = NULL;
+        free(aux);
+        return raiz;
+      }
+
+      // Remover nó com um filho
+      if(raiz->esq != NULL && raiz->dir == NULL 
+      || raiz->dir != NULL && raiz->esq == NULL) {
+        s_no *aux = raiz;
+        if(raiz->esq != NULL) {
+          raiz = raiz->esq;
+        } else {
+          raiz = raiz->dir;
+        }
+        free(aux);
+        return raiz;
+      }
+
+      // Remover nó com dois filhos
+      if(raiz->esq != NULL && raiz->dir != NULL) {
+        s_no *aux = raiz;
+        s_no *aux2 = raiz->dir;
+
+        // encontrar o sucessor
+        raiz = raiz->dir;
+        while(raiz->esq != NULL) {
+          raiz = raiz->esq;
+        }
+        raiz->esq = aux->esq;
+
+        while(aux2->esq != raiz) {
+          aux2 = aux2->esq;
+        }
+
+        if(raiz->dir == NULL) {
+          raiz->dir = aux2;
+          aux2->esq = NULL;
+        } else {
+          aux2->esq = raiz->dir;
+          raiz->dir = aux2;
+        }
+
+        free(aux);
+        return raiz;
+      }
+
+
+    } else {
+      if(valor < raiz->valor) {
+        raiz->esq = remover(raiz->esq, valor);
+      } else {
+        raiz->dir = remover(raiz->dir, valor);
+      }
+      return raiz;
+    }
+  }
+}
 
 
 
